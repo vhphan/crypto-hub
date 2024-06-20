@@ -1,0 +1,8 @@
+###
+
+GET http://localhost:3311/v1/api/hello
+
+
+###
+# urlencode ETH/USD and BTC/USD
+GET http://localhost:3311/v1/api/cryptoBarsMinutes?symbols=ETH%2FUSD%2CBTC%2FUSD
