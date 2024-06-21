@@ -7,9 +7,9 @@ export const useCryptoStore = defineStore({
     id: 'cryptoStore',
     state: () => ({
         cryptoBars: {
-            '1m': [],
-            '1h': [],
-            '1d': [],
+            '1m': {},
+            '1h': {},
+            '1d': {},
         },
     }),
     actions: {

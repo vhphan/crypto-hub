@@ -1,4 +1,5 @@
 <script setup>
+
 import {storeToRefs} from "pinia";
 import {computed, ref} from "vue";
 import {useCryptoStore} from "@/stores/cryptoStore.js";
@@ -30,30 +31,16 @@ const convertISOtoUnix = (iso) => {
   return new Date(iso).getTime() / 1000;
 };
 
-const getChartData = (symbol) => {
-  return selectedTimeFrameData.value[symbol].map(d => {
-    return {
-      time: convertISOtoUnix(d.openTime),
-      value: d.close
-    }
-  });
-};
+const getChartData = (symbol) => selectedTimeFrameData.value[symbol].map(d => d.close);
+
+
 
 </script>
 
 <template>
-  <div ref="chartRefs" v-for="symbol in symbols">
-    {{ symbol }}
-    <br/>
-    <LWChart
-        type="line"
-        :data="getChartData(symbol)"
-        ref="myChart"
-        :chart-options="{width: 800, height: 400}"
-    />
-  </div>
+
 </template>
 
-<style>
+<style scoped>
 
 </style>
