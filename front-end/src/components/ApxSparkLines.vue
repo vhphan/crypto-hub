@@ -49,6 +49,8 @@ const baseOptions = {
   },
 };
 
+const chartType = ref('area');
+
 const chartOptions = computed(() => {
   return symbols.value.map((symbol) => {
     return {
@@ -77,7 +79,7 @@ const chartOptions = computed(() => {
         }
       },
       chart: {
-        type: 'area',
+        type: chartType.value,
         height: 160,
         sparkline: {
           enabled: true
@@ -95,13 +97,20 @@ const chartOptions = computed(() => {
 <template>
   <div class="row">
     <q-select
-        class="col-12"
+        class="col-6"
         v-model="selectedTimeFrame"
         :options="timeFrameOptions"
         label="Time Frame"
-        dense
         emit-value
-
+        outlined
+    />
+    <q-select
+        class="col-6"
+        v-model="chartType"
+        :options="['area', 'line', 'bar']"
+        label="Chart Type"
+        emit-value
+        outlined
     />
     <q-space />
     <div ref="chartRefs" v-for="(symbol, idx) in symbols" class="col-3 q-ma-md">
