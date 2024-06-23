@@ -23,5 +23,8 @@ export const links = {
         }
     },
 
+    cryptoNews: function (mode) {
+        return `${this.baseNodeUrl}/v1/api/cryptoNews?mode=${mode}`;
+    },
 
 }
