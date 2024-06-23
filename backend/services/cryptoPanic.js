@@ -4,8 +4,9 @@ const cheerio = require("cheerio");
 
 const getHeadlines = async () => {
     const url = `https://cryptopanic.com/api/v1/posts/?auth_token=${process.env.CRYPTOPANIC_API_KEY}&public=true`
-    const response = await axios.get(url);
-    return response.data.results;
+    const data = (await axios.get(url)).data;
+    const {results} = data;
+    return results;
 }
 const puppeteer = require('puppeteer');
 
@@ -19,10 +20,11 @@ async function loadHTML(url) {
 }
 
 // Use the function
-const scrapeSummaries = async (headlines, topN = 10) => {
+const scrapeSummaries = async (headlines, topN = 3) => {
     const summaries = [];
     for (let headline of headlines.slice(0, topN)) {
         const summary = {
+            id: headline.id,
             title: headline.title,
             url: headline.url,
             source: headline.source.title,
@@ -34,7 +36,18 @@ const scrapeSummaries = async (headlines, topN = 10) => {
         console.log(summary);
         const html = await loadHTML(summary.url);
         const $ = cheerio.load(html);
-        const text = $('div.description-body').text();
+        const htmlContent = $('div.description-body').html();
+        const splitContent = htmlContent.split('<br>');
+        let textBeforeFirstBr;
+
+        if (splitContent.length > 1) {
+            textBeforeFirstBr = splitContent[0];
+        } else {
+            textBeforeFirstBr = htmlContent;
+        }
+
+        const $textBeforeFirstBr = cheerio.load(textBeforeFirstBr);
+        const text = $textBeforeFirstBr.text();
         console.log(text);
         summary.description = text;
     }
