@@ -40,5 +40,3 @@ myApp.mount('#app');
 
 // const cryptoStore = useCryptoStore();
 // cryptoStore.initMyFetch();
-
-
