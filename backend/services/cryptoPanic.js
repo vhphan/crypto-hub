@@ -35,6 +35,23 @@ const scrapeSummaries = async (headlines, topN = 3) => {
     for (let summary of summaries) {
         console.log(summary);
         const html = await loadHTML(summary.url);
+
+        // check existing json file for the description using id
+        // if found, use that description
+        // else, scrape the description
+        // save the description to the json file
+
+        const fs = require('fs');
+        const dirOfThisFile = __dirname;
+        const currentDir = process.cwd();
+        const data = fs.readFileSync(`${currentDir}/services/json/cryptoNews.json`, 'utf8');
+        const json = JSON.parse(data);
+        const found = json.find(item => item.id === summary.id);
+        if (found) {
+            summary.description = found.description;
+            continue;
+        }
+
         const $ = cheerio.load(html);
         const htmlContent = $('div.description-body').html();
         const splitContent = htmlContent.split('<br>');
@@ -67,6 +84,13 @@ async function getHeadlinesWithSummaries(mode) {
     return await scrapeSummaries(rawHeadlines);
 }
 
+async function saveHeadlinesWithSummaries() {
+    const fs = require('fs');
+    const summaries = await getHeadlinesWithSummaries();
+    const currentDir = process.cwd();
+    fs.writeFileSync(`${currentDir}/services/json/cryptoNews.json`, JSON.stringify(summaries, null, 4));
+}
+
 const main = async () => {
     require('dotenv').config();
     const summaries = await getHeadlinesWithSummaries();
@@ -79,5 +103,6 @@ if (require.main === module) {
 
 module.exports = {
     getHeadlines,
-    getHeadlinesWithSummaries
+    getHeadlinesWithSummaries,
+    saveHeadlinesWithSummaries,
 }
