@@ -2,8 +2,9 @@
 
 import {useCryptoStore} from "@/stores/cryptoStore.js";
 import {storeToRefs} from "pinia";
-import {computed, ref} from "vue";
+import {computed, ref, watch} from "vue";
 import {useMainStore} from "@/stores/mainStore.js";
+import styles from "@/styles.js";
 
 const mainStore = useMainStore();
 const isDark = storeToRefs(mainStore).isDark;
@@ -39,25 +40,36 @@ const chartData = computed(() => {
   });
 });
 
-const baseOptions = {
-
-  stroke: {
-    curve: 'straight'
-  },
-  fill: {
-    opacity: 0.3,
-  },
-};
 
 const chartType = ref('area');
+
+const symbolSummaries = computed(() => {
+  return symbols.value.map((symbol) => {
+    const data = chartData.value.find(d => d.name === symbol).data;
+    let lastPriceValue = data[data.length - 1];
+    return {
+      symbol,
+      lastPrice: lastPriceValue.toLocaleString(),
+      change: lastPriceValue - data[0],
+      percentChange: (((lastPriceValue - data[0]) / data[0]) * 100).toFixed(2),
+    }
+  });
+});
 
 const chartOptions = computed(() => {
   return symbols.value.map((symbol) => {
     return {
-      ...baseOptions,
+      stroke: {
+        curve: 'straight',
+      },
+      fill: {
+        opacity: 0.3,
+      },
       // series: [{
       //   data: chartData.value.find(d => d.name === symbol).data
       // }],
+      colors: isDark.value ? [styles.b2] : [styles.accent],
+
       theme: {
         mode: isDark.value ? 'dark' : 'light',
         palette: isDark.value ? 'palette4' : 'palette1',
@@ -71,7 +83,7 @@ const chartOptions = computed(() => {
         }
       },
       subtitle: {
-        text: 'Sales',
+        text: selectedTimeFrame.value,
         offsetX: 0,
         style: {
           fontSize: '14px',
@@ -80,22 +92,44 @@ const chartOptions = computed(() => {
       },
       chart: {
         type: chartType.value,
-        height: 160,
         sparkline: {
           enabled: true
         },
         background: isDark.value ? '#333' : '#fff',
       }
-
     }
   });
 });
 
+function updateSummary(symbol) {
+  const subtitleElements = Array.from(document.querySelectorAll('.my-subtitle'));
+  const subtitleElement = subtitleElements.find(e => e.getAttribute('data-symbol') === symbol);
+  if (!subtitleElement) return;
+  const summary = symbolSummaries.value.find(s => s.symbol === symbol);
+  const arrow = summary.change >= 0 ? '↑' : '↓';
+  const color = summary.change >= 0 ? 'green' : 'red';
+  subtitleElement.innerHTML = `USD$ ${summary.lastPrice} <span style="color: ${color};">${arrow} ${summary.percentChange}%</span>`;
+}
+
+const onChartMounted = (chartContext, symbol) => {
+  console.log(chartContext);
+  updateSummary(symbol);
+}
+
+watch(() => symbolSummaries.value, () => {
+  symbols.value.forEach((symbol) => {
+    updateSummary(symbol);
+  });
+  //update chart height
+  // chartRefs.value.forEach((chartRef) => {
+  //
+  // });
+});
 
 </script>
 
 <template>
-  <div class="row">
+  <div class="row my-row">
     <q-select
         class="col-6"
         v-model="selectedTimeFrame"
@@ -112,23 +146,48 @@ const chartOptions = computed(() => {
         emit-value
         outlined
     />
-    <q-space />
-    <div ref="chartRefs" v-for="(symbol, idx) in symbols" class="col-3 q-ma-md">
-      {{ symbol }}
-      <br/>
+  </div>
+  <div class="row my-row">
+    <div
+        v-for="(symbol, idx) in symbols"
+        :data-symbol="symbol"
+        :key="symbol"
+        class="col-12 col-md-4 chart-container"
+    >
       <apexchart
+          ref="chartRefs"
           :key="symbol"
           :options="chartOptions.find(o => o.title.text === symbol)"
           type="area"
-          width="300"
+          width="350px"
+          height="260px"
           :series="[{data: chartData.find(d => d.name === symbol).data}]"
+          @mounted="(ctx)=>onChartMounted(ctx,  symbol)"
       />
+      <div class="my-subtitle" :data-symbol="symbol">
+      </div>
     </div>
-    <q-space />
   </div>
 
 </template>
 
 <style scoped>
+.my-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.my-subtitle {
+  font-size: 18px;
+  text-align: center;
+  margin-top: 10px;
+}
 
 </style>
