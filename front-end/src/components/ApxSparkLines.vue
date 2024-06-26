@@ -106,9 +106,12 @@ function updateSummary(symbol) {
   const subtitleElement = subtitleElements.find(e => e.getAttribute('data-symbol') === symbol);
   if (!subtitleElement) return;
   const summary = symbolSummaries.value.find(s => s.symbol === symbol);
-  const arrow = summary.change >= 0 ? '↑' : '↓';
+  // const arrow = summary.change >= 0 ? '↑' : '↓';
+  const arrow = summary.change >= 0 ? 'arrow_upward' : 'arrow_downward' ;
+  const arrowHtml = `<span class="material-icons arrow" style="color: ${summary.change >= 0 ? 'green' : 'red'};">${arrow}</span>`;
   const color = summary.change >= 0 ? 'green' : 'red';
-  subtitleElement.innerHTML = `USD$ ${summary.lastPrice} <span style="color: ${color};">${arrow} ${summary.percentChange}%</span>`;
+
+  subtitleElement.innerHTML = `USD$ ${summary.lastPrice} ${arrowHtml} <span style="color: ${color};"> ${summary.percentChange}%</span>`;
 }
 
 const onChartMounted = (chartContext, symbol) => {
@@ -190,4 +193,9 @@ watch(() => symbolSummaries.value, () => {
   margin-top: 10px;
 }
 
+</style>
+<style>
+.arrow {
+  font-size: 30px;
+}
 </style>
