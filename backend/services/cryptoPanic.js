@@ -9,6 +9,7 @@ const getHeadlines = async () => {
     return results;
 }
 const puppeteer = require('puppeteer');
+const {logger, logError} = require("#src/middlewares/logger");
 
 async function loadHTML(url) {
     const browser = await puppeteer.launch();
@@ -54,6 +55,11 @@ const scrapeSummaries = async (headlines, topN = 3) => {
 
         const $ = cheerio.load(html);
         const htmlContent = $('div.description-body').html();
+        if (!htmlContent) {
+            logger.error(`Could not find description for ${summary.url}`);
+            logger.info(html);
+            continue;
+        }
         const splitContent = htmlContent.split('<br>');
         let textBeforeFirstBr;
 
