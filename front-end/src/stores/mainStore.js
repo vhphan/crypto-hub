@@ -11,7 +11,6 @@ export const useMainStore = defineStore({
             loading: false,
         }
     ),
-
 })
 
 

@@ -49,7 +49,7 @@ const getChartData = (symbol) => {
         type="line"
         :data="getChartData(symbol)"
         ref="myChart"
-        :chart-options="{width: 800, height: 400}"
+        :chart-options="{minWidth: 800, height: 400}"
     />
   </div>
 </template>

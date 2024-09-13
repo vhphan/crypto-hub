@@ -1,6 +1,6 @@
 const cron = require("node-cron");
 const {saveHeadlinesWithSummaries} = require("#src/services/cryptoPanic");
-const logger = require("morgan");
+const {logger} = require("#src/middlewares/logger");
 
 const createCronJobs = () => {
     console.log('created hourly cron job.');

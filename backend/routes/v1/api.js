@@ -7,9 +7,6 @@ const {getHeadlinesWithSummaries} = require("#src/services/cryptoPanic");
 const router = express.Router();
 
 router.get('/hello', async function (req, res) {
-
-        // simulate async operation with duration 5 seconds
-        // await new Promise(resolve => setTimeout(resolve, 5000));
         res.json({
             success: true,
             message: 'Node server running'
@@ -22,7 +19,7 @@ const cryptoBars = (interval, cacheDuration) => {
         createCache(cacheDuration),
         asyncHandler(
             async function (req, res) {
-                const symbols = req.query.symbols.split(',');
+                const symbols = req.query.symbols.split(',').map(s => s.trim());
                 const bars = await getCandlesMultipleSymbols(symbols, interval);
                 res.json({
                     success: true,
