@@ -2,9 +2,10 @@
 
 import {useCryptoStore} from "@/stores/cryptoStore.js";
 import {storeToRefs} from "pinia";
-import {computed, ref, watch} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {useMainStore} from "@/stores/mainStore.js";
 import styles from "@/styles.js";
+import {debounce} from "quasar";
 
 const mainStore = useMainStore();
 const isDark = storeToRefs(mainStore).isDark;
@@ -107,7 +108,7 @@ function updateSummary(symbol) {
   if (!subtitleElement) return;
   const summary = symbolSummaries.value.find(s => s.symbol === symbol);
   // const arrow = summary.change >= 0 ? '↑' : '↓';
-  const arrow = summary.change >= 0 ? 'arrow_upward' : 'arrow_downward' ;
+  const arrow = summary.change >= 0 ? 'arrow_upward' : 'arrow_downward';
   const arrowHtml = `<span class="material-icons arrow" style="color: ${summary.change >= 0 ? 'green' : 'red'};">${arrow}</span>`;
   const color = summary.change >= 0 ? 'green' : 'red';
 
@@ -128,6 +129,58 @@ watch(() => symbolSummaries.value, () => {
   //
   // });
 });
+
+const containerRef = ref(null);
+const chartWidth = ref(500);
+
+const stackedVertically = ref(false);
+
+const checkStacked = () => {
+  const charts = document.querySelectorAll('.chart-container');
+  for (let i = 1; i < charts.length; i++) {
+    const prevChart = charts[i - 1].getBoundingClientRect();
+    const currChart = charts[i].getBoundingClientRect();
+    if (currChart.top >= prevChart.bottom) {
+      console.log('stacked vertically');
+      return true;
+    }
+  }
+  console.log('stacked horizontally');
+  return false;
+}
+
+onMounted(() => {
+  stackedVertically.value = checkStacked();
+});
+
+const onResize = debounce((size) => {
+  console.log(size);
+  // check if chart has been rendered using chartRefs
+  if (chartRefs.value.length === 0) return;
+
+  stackedVertically.value = checkStacked();
+  if (stackedVertically.value) {
+    chartRefs.value.forEach((chartRef) => {
+      chartRef.updateOptions({
+        chart: {
+          width: 0.6 * size.width
+        }
+      });
+    });
+    return;
+  }
+
+  chartRefs.value.forEach((chartRef) => {
+    chartRef.updateOptions({
+      chart: {
+        width: (size.width - 10)
+      }
+    });
+  });
+
+
+}, 300)
+
 
 </script>
 
@@ -150,20 +203,20 @@ watch(() => symbolSummaries.value, () => {
         outlined
     />
   </div>
-  <div class="row my-row">
+  <div class="row my-row" ref="containerRef">
     <div
         v-for="(symbol, idx) in symbols"
         :data-symbol="symbol"
         :key="symbol"
         class="col-12 col-md-4 chart-container"
     >
+      <q-resize-observer @resize="onResize"/>
       <apexchart
           ref="chartRefs"
           :key="symbol"
           :options="chartOptions.find(o => o.title.text === symbol)"
           type="area"
-          width="350px"
-          height="260px"
+          :width="chartWidth"
           :series="[{data: chartData.find(d => d.name === symbol).data}]"
           @mounted="(ctx)=>onChartMounted(ctx,  symbol)"
       />
